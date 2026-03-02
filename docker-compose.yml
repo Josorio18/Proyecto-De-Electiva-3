@@ -2,20 +2,19 @@ version: "3.9"
 
 services:
   db:
-    image: mariadb:11.3
+    image: postgres:16-alpine
     container_name: canchapro_db
     restart: always
     environment:
-      MARIADB_ROOT_PASSWORD: rootpassword
-      MARIADB_DATABASE: canchapro
-      MARIADB_USER: canchapro_user
-      MARIADB_PASSWORD: canchapro_pass
+      POSTGRES_DB: canchapro
+      POSTGRES_USER: canchapro_user
+      POSTGRES_PASSWORD: canchapro_pass
     ports:
-      - "3307:3306" # Opcional: para conectarte desde tu host a MariaDB
+      - "5433:5432" # Opcional: para conectarte desde tu host a PostgreSQL
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      test: ["CMD-SHELL", "pg_isready -U canchapro_user -d canchapro"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,7 +28,7 @@ services:
     environment:
       PORT: 3000
       # Esta URL se usa dentro del contenedor Node para hablar con el servicio "db"
-      DATABASE_URL: "mariadb://canchapro_user:canchapro_pass@db:3306/canchapro"
+      DATABASE_URL: "postgres://canchapro_user:canchapro_pass@db:5432/canchapro"
     depends_on:
       db:
         condition: service_healthy

@@ -17,4 +17,4 @@ services:
       - key: PORT
         value: 3000
       - key: DATABASE_URL
-        sync: false  # Configurar manualmente en Render Dashboard
+        sync: false  # Se debe configurar manualmente en Render pegando la Internal Database URL
