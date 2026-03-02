@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  db:
+    image: mariadb:11.3
+    container_name: canchapro_db
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpassword
+      MARIADB_DATABASE: canchapro
+      MARIADB_USER: canchapro_user
+      MARIADB_PASSWORD: canchapro_pass
+    ports:
+      - "3307:3306" # Opcional: para conectarte desde tu host a MariaDB
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: canchapro_backend
+    restart: always
+    environment:
+      PORT: 3000
+      # Esta URL se usa dentro del contenedor Node para hablar con el servicio "db"
+      DATABASE_URL: "mariadb://canchapro_user:canchapro_pass@db:3306/canchapro"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+  frontend:
+    image: nginx:alpine
+    container_name: canchapro_frontend
+    restart: always
+    volumes:
+      - ./frontend-web:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  db_data:

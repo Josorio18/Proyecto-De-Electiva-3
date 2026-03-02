@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CanchaPro | Admin Dashboard</title>
+    <script>
+        const session = JSON.parse(localStorage.getItem('canchapro_session') || 'null');
+        if (!session || session.type !== 'admin') {
+            window.location.replace('login.html');
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <!-- FontAwesome para Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <nav class="sidebar glass-panel">
+            <div class="logo">
+                <i class="fa-solid fa-futbol"></i>
+                <h2>Cancha<span>Pro</span></h2>
+            </div>
+            <ul class="nav-links">
+                <li class="active" data-target="dashboard-view"><i class="fa-solid fa-chart-line"></i> Dashboard</li>
+                <li data-target="users-view"><i class="fa-solid fa-users"></i> Usuarios</li>
+                <li data-target="admins-view"><i class="fa-solid fa-user-shield"></i> Admins</li>
+                <li data-target="courts-view"><i class="fa-solid fa-map"></i> Canchas</li>
+                <li data-target="reservations-view"><i class="fa-solid fa-calendar-check"></i> Reservas</li>
+                <li data-target="payments-view"><i class="fa-solid fa-credit-card"></i> Pagos</li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="glass-panel">
+                <div class="search-bar">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" placeholder="Buscar reservas, canchas, etc...">
+                </div>
+                <div class="user-profile">
+                    <div class="notification"><i class="fa-solid fa-bell"></i></div>
+                    <img id="admin-avatar" src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff" alt="Admin">
+                    <span id="admin-name">Admin</span>
+                    <button class="btn-logout-small" onclick="logout()" title="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i></button>
+                </div>
+            </header>
+
+            <!-- Vistas / Views (Manejadas por JS) -->
+            <div id="dashboard-view" class="view-section active custom-fade">
+                <h1 class="page-title">Bienvenido, Admin</h1>
+                <p class="subtitle">Resumen global de la plataforma.</p>
+                <div class="stats-grid">
+                    <div class="stat-card glass-panel orange-glow">
+                        <div class="icon"><i class="fa-solid fa-users"></i></div>
+                        <div class="info">
+                            <h3>Usuarios</h3>
+                            <h2 id="total-users">--</h2>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel blue-glow">
+                        <div class="icon"><i class="fa-solid fa-map"></i></div>
+                        <div class="info">
+                            <h3>Canchas Activas</h3>
+                            <h2 id="total-courts">--</h2>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel purple-glow">
+                        <div class="icon"><i class="fa-solid fa-calendar-check"></i></div>
+                        <div class="info">
+                            <h3>Reservas</h3>
+                            <h2 id="total-reservations">--</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-illustration glass-panel">
+                    <h2>Gestión simplificada e inteligente</h2>
+                    <p>Mantén el control total sobre los alquileres y pagos.</p>
+                </div>
+            </div>
+
+            <!-- Usuarios CRUD -->
+            <div id="users-view" class="view-section custom-fade">
+                <h1 class="page-title">Gestión de Usuarios</h1>
+                <div class="crud-container glass-panel">
+                    <form id="form-users" class="crud-form">
+                        <input type="text" id="u-name" placeholder="Nombre completo" required>
+                        <input type="email" id="u-email" placeholder="Correo electrónico" required>
+                        <input type="password" id="u-password" placeholder="Contraseña" required>
+                        <input type="text" id="u-phone" placeholder="Teléfono" required>
+                        <button type="submit" class="btn-primary">Registrar Usuario</button>
+                    </form>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="table-users"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admins CRUD -->
+            <div id="admins-view" class="view-section custom-fade">
+                <h1 class="page-title">Administradores del Sistema</h1>
+                <div class="crud-container glass-panel">
+                    <form id="form-admins" class="crud-form">
+                        <input type="text" id="a-name" placeholder="Nombre completo" required>
+                        <input type="email" id="a-email" placeholder="Correo electrónico" required>
+                        <input type="password" id="a-password" placeholder="Contraseña" required>
+                        <button type="submit" class="btn-primary">Registrar Admin</button>
+                    </form>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="table-admins"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canchas CRUD -->
+            <div id="courts-view" class="view-section custom-fade">
+                <h1 class="page-title">Inventario de Canchas</h1>
+                <div class="crud-container glass-panel">
+                    <form id="form-courts" class="crud-form">
+                        <input type="text" id="c-name" placeholder="Nombre de Cancha (Ej. Sintética #1)" required>
+                        <input type="text" id="c-sport" placeholder="Deporte" required>
+                        <input type="number" id="c-price" placeholder="Precio ($/hr)" step="0.01" required>
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="c-active" checked> Activa
+                        </label>
+                        <button type="submit" class="btn-primary">Agregar Cancha</button>
+                    </form>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Cancha</th><th>Deporte</th><th>Precio/hr</th><th>Estado</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="table-courts"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reservas CRUD -->
+            <div id="reservations-view" class="view-section custom-fade">
+                <h1 class="page-title">Agenda de Reservas</h1>
+                <div class="crud-container glass-panel">
+                    <form id="form-reservations" class="crud-form">
+                        <select id="r-user" required><option value="">Seleccione Usuario...</option></select>
+                        <select id="r-court" required><option value="">Seleccione Cancha...</option></select>
+                        <input type="date" id="r-date" required>
+                        <input type="time" id="r-start" required>
+                        <input type="time" id="r-end" required>
+                        <button type="submit" class="btn-primary">Procesar Reserva</button>
+                    </form>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Usuario</th><th>Cancha</th><th>Fecha</th><th>Hora</th><th>Status</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="table-reservations"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagos CRUD -->
+            <div id="payments-view" class="view-section custom-fade">
+                <h1 class="page-title">Historial de Pagos</h1>
+                <div class="crud-container glass-panel">
+                    <form id="form-payments" class="crud-form">
+                        <select id="p-res" required><option value="">Seleccione Reserva...</option></select>
+                        <input type="number" id="p-amount" placeholder="Monto total ($)" step="0.01" required>
+                        <select id="p-method" required>
+                            <option value="">Método de Pago...</option>
+                            <option value="cash">Efectivo 💵</option>
+                            <option value="transfer">Transferencia 📲</option>
+                            <option value="card">Tarjeta 💳</option>
+                        </select>
+                        <button type="submit" class="btn-primary">Liquidar Pago</button>
+                    </form>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>ID Pago</th><th>Reserva ID</th><th>Monto</th><th>Método</th><th>Estado</th></tr>
+                            </thead>
+                            <tbody id="table-payments"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast">Notificación</div>
+
+    <script>
+        if (session && session.user) {
+            document.getElementById('admin-name').textContent = session.user.name;
+            document.getElementById('admin-avatar').src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(session.user.name) + '&background=0D8ABC&color=fff';
+        }
+        function logout() { localStorage.removeItem('canchapro_session'); window.location.href = 'login.html'; }
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>

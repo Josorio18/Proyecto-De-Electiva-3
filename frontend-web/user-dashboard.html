@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CanchaPro | Mi Cuenta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .user-dashboard { padding: 2rem; max-width: 900px; margin: 0 auto; }
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .user-welcome h1 { font-size: 1.8rem; }
+        .btn-logout {
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-logout:hover { opacity: 0.9; }
+        .user-card {
+            background: var(--bg-panel);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .user-card h2 { margin-bottom: 1rem; font-size: 1.3rem; }
+    </style>
+</head>
+<body>
+    <div class="user-dashboard">
+        <div class="user-header glass-panel" style="padding: 1rem 2rem;">
+            <div class="user-welcome">
+                <h1>Hola, <span id="user-name">Usuario</span></h1>
+                <p class="subtitle">Panel de usuario - CanchaPro</p>
+            </div>
+            <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
+        </div>
+
+        <div class="user-card">
+            <h2><i class="fa-solid fa-map"></i> Reservar una cancha</h2>
+            <p class="subtitle">Selecciona una cancha activa y el horario.</p>
+            <form id="form-new-reservation" class="crud-form" style="margin-top: 1rem;">
+                <select id="sel-court" required>
+                    <option value="">Cargando canchas...</option>
+                </select>
+                <input type="date" id="res-date" required>
+                <input type="time" id="res-start" required>
+                <input type="time" id="res-end" required>
+                <button type="submit" class="btn-primary"><i class="fa-solid fa-calendar-plus"></i> Crear reserva</button>
+            </form>
+            <p id="res-estimate" class="subtitle" style="margin-top: 0.75rem;"></p>
+        </div>
+
+        <div class="user-card">
+            <h2><i class="fa-solid fa-calendar-check"></i> Mis Reservas</h2>
+            <p class="subtitle">Aquí podrás ver y gestionar tus reservas de canchas.</p>
+            <div id="user-reservations" class="table-responsive">
+                <p style="color: var(--text-secondary);">Cargando...</p>
+            </div>
+        </div>
+
+        <div class="user-card">
+            <h2><i class="fa-solid fa-credit-card"></i> Mis Pagos</h2>
+            <p class="subtitle">Historial de pagos realizados.</p>
+            <div id="user-payments" class="table-responsive">
+                <p style="color: var(--text-secondary);">Cargando...</p>
+            </div>
+        </div>
+
+        <div class="user-card">
+            <h2><i class="fa-solid fa-info-circle"></i> Información de tu cuenta</h2>
+            <p><strong>Email:</strong> <span id="user-email">-</span></p>
+            <p><strong>Teléfono:</strong> <span id="user-phone">-</span></p>
+        </div>
+    </div>
+
+    <!-- Modal de pago -->
+    <div id="pay-overlay" class="modal-overlay" aria-hidden="true">
+        <div class="modal glass-panel" role="dialog" aria-modal="true" aria-labelledby="pay-title">
+            <div class="modal-header">
+                <div>
+                    <h2 id="pay-title" class="modal-title"><i class="fa-solid fa-credit-card"></i> Confirmar pago</h2>
+                    <p class="modal-subtitle" id="pay-subtitle">Simulación de pago</p>
+                </div>
+                <button class="modal-close" type="button" onclick="closePayModal()" aria-label="Cerrar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="pay-summary">
+                    <div class="pay-line"><span>Reserva</span><strong id="pay-res-id">#-</strong></div>
+                    <div class="pay-line"><span>Cancha</span><strong id="pay-court">-</strong></div>
+                    <div class="pay-line"><span>Fecha</span><strong id="pay-date">-</strong></div>
+                    <div class="pay-line"><span>Hora</span><strong id="pay-time">-</strong></div>
+                    <div class="pay-total">
+                        <span>Total</span>
+                        <strong id="pay-amount">$0.00</strong>
+                    </div>
+                </div>
+
+                <div class="pay-methods">
+                    <p class="subtitle" style="margin-bottom: 0.75rem;">Selecciona método de pago</p>
+                    <div class="method-grid" id="method-grid">
+                        <label class="method-option active">
+                            <input type="radio" name="pay-method" value="card" checked>
+                            <div class="method-ui">
+                                <i class="fa-solid fa-credit-card"></i>
+                                <div>
+                                    <div class="method-name">Tarjeta</div>
+                                    <div class="method-desc">Simulación</div>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" name="pay-method" value="transfer">
+                            <div class="method-ui">
+                                <i class="fa-solid fa-money-bill-transfer"></i>
+                                <div>
+                                    <div class="method-name">Transferencia</div>
+                                    <div class="method-desc">Simulación</div>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" name="pay-method" value="cash">
+                            <div class="method-ui">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                                <div>
+                                    <div class="method-name">Efectivo</div>
+                                    <div class="method-desc">Simulación</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pay-form" id="pay-form">
+                    <div class="pay-fields" id="pay-fields-card">
+                        <div class="field-row">
+                            <input class="input" id="card-number" inputmode="numeric" placeholder="Número de tarjeta (simulado)" value="4242 4242 4242 4242">
+                        </div>
+                        <div class="field-row two">
+                            <input class="input" id="card-exp" placeholder="MM/AA" value="12/34">
+                            <input class="input" id="card-cvc" inputmode="numeric" placeholder="CVC" value="123">
+                        </div>
+                        <div class="field-row">
+                            <input class="input" id="card-name" placeholder="Nombre en la tarjeta" value="Usuario Demo">
+                        </div>
+                    </div>
+                    <div class="pay-fields" id="pay-fields-transfer" style="display:none;">
+                        <div class="field-row">
+                            <input class="input" id="transfer-ref" placeholder="Referencia (simulada)" value="TRX-000123">
+                        </div>
+                    </div>
+                    <div class="pay-fields" id="pay-fields-cash" style="display:none;">
+                        <p style="color: var(--text-secondary); margin-top: 0.25rem;">
+                            Confirmarás un pago en efectivo (simulación). No se requiere información adicional.
+                        </p>
+                    </div>
+                </div>
+
+                <div id="pay-error" class="pay-error" style="display:none;"></div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closePayModal()">Cancelar</button>
+                <button type="button" class="btn-primary" id="btn-confirm-pay" onclick="confirmPay()">
+                    <span class="btn-label"><i class="fa-solid fa-lock"></i> Simular pago</span>
+                    <span class="btn-loading" style="display:none;"><span class="spinner"></span> Procesando...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Notificación</div>
+
+    <script src="config.js"></script>
+    <script src="user-dashboard.js"></script>
+</body>
+</html>
