@@ -6,7 +6,7 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const frontendPath = path.resolve(__dirname, '..', 'frontend-web');
+const frontendPath = path.join(__dirname, 'frontend-web');
 
 // Configuración correcta de CORS
 app.use(cors({
